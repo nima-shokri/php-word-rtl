@@ -7,7 +7,7 @@ $ds = DIRECTORY_SEPARATOR;
 
 $templatePath =  __DIR__."/template/variable.docx";
 $word = new phpWordRtl($templatePath);
-$word->setVarValue('نام', 'آقای فلانی');
+$word->setVarValue('نام', 'فلانی');
 $word->setVarValue('سازمان', 'سازمان فلان');
 $word->setVarValue('تاریخ', '02/04/1399');
 $word->setVarValue('شماره', '35/858585');

@@ -1,5 +1,7 @@
 <?php
 namespace phpWordRtl;
+require __DIR__."/clsTbsZip.php";
+
 
 /**
  *   php.word.Rtl version 1.0
@@ -12,13 +14,13 @@ namespace phpWordRtl;
 
 use phpWordRtl\clsTbsZip;
 
-define('VAR_START', '««');   // the start of variables 
-define('VAR_END', '»»');   // the start of variables 
+define('VAR_START', '((');   // the start of variables 
+define('VAR_END', '))');   // the start of variables 
 
-define('BLOCK_START_BEGIN', '«««');   // 
-define('BLOCK_START_END', '»');   // 
-define('BLOCK_END_BEGIN', '«');   // 
-define('BLOCK_END_END', '»»»');   // 
+define('BLOCK_START_BEGIN', '(((');   // 
+define('BLOCK_START_END', ')');   // 
+define('BLOCK_END_BEGIN', '(');   // 
+define('BLOCK_END_END', ')))');   // 
 
 class phpWordRtl
 {
@@ -88,23 +90,17 @@ class phpWordRtl
             'start' => BLOCK_START_BEGIN . $blockName . BLOCK_START_END,
             'end' => BLOCK_END_BEGIN . $blockName . BLOCK_END_END
         );
+        
     }
 
     public function output($fileName, $phpOutput = true)
     {
 
-        //try {
-        // add zip component to 
-        // include_once('ChromePhp.php'); // load the TbsZip library
         $zip = new clsTbsZip(); // create a new instance of the TbsZip class
-        //$zip->CreateNew(); // start a new empty archive for adding files
-        // or
         $zip->Open($this->template); // open an existing archive for reading and/or modifying
         // --------------------------------------------------
         // Reading information and data in the opened archive
         // --------------------------------------------------
-        // check if a file is existing in the archive, the name must precise subfolders if any
-        //$ok = $zip->FileExists('word/document.xml');
         $xml = $zip->FileRead('word/document.xml');
 
         $relations = $zip->FileRead('word/_rels/document.xml.rels');
@@ -203,7 +199,7 @@ class phpWordRtl
 
         // CLEAR UNUSED BLOCKS 
         $xml = $this->clearTemplate($xml);
-
+        
 
 
         $zip->FileReplace('word/_rels/document.xml.rels', $relations, TBSZIP_STRING); // replace the file by giving the content
@@ -232,9 +228,6 @@ class phpWordRtl
 
 
         $zip->Close(); // stop to work with the opened archive. Modifications are not applied to the opened archive, use Flush() to commit  
-        //        } catch (Exception $e) {
-        //            $this->errors[count($this->errors)] = $e->getMessage();
-        //        }
     }
 
     private function deleteBlockFromXml($xml, $blockStart, $blockEnd)

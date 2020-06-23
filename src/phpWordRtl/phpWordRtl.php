@@ -1,6 +1,8 @@
 <?php
+
 namespace phpWordRtl;
-require __DIR__."/clsTbsZip.php";
+
+require __DIR__ . "/clsTbsZip.php";
 
 
 /**
@@ -74,7 +76,7 @@ class phpWordRtl
     }
 
     // set image to image array
-    public function addImageToVar($var, $path, $params)
+    public function addImageToVar($var, $path, $params = null)
     {
         $this->images[count($this->images)] = array(
             'var' => $var,
@@ -90,7 +92,6 @@ class phpWordRtl
             'start' => BLOCK_START_BEGIN . $blockName . BLOCK_START_END,
             'end' => BLOCK_END_BEGIN . $blockName . BLOCK_END_END
         );
-        
     }
 
     public function output($fileName, $phpOutput = true)
@@ -166,10 +167,8 @@ class phpWordRtl
 
         // add images to file
         for ($i = 0; $i < count($this->images); $i++) {
+
             // add image to zip
-
-
-
             $fPath = $this->images[$i]['path'];
 
             if (file_exists($fPath)) {
@@ -188,7 +187,7 @@ class phpWordRtl
                 $rid = 'rId' . ($idCount + 1);
                 $relations = $this->addImagesToRelationXml($relations, $fPath, $imageName,  $rid);
 
-                $xml = $this->addImageTagsToXml($xml, $this->images[$i]['var'], $imageName, $rid);
+                $xml = $this->addImageTagsToXml($xml, $this->images[$i]['var'], $imageName, $rid, $this->images[$i]['params']);
             } else {
                 $this->errors[count($this->errors)] = "File \"$fPath\" not found!";
             }
@@ -199,7 +198,7 @@ class phpWordRtl
 
         // CLEAR UNUSED BLOCKS 
         $xml = $this->clearTemplate($xml);
-        
+
 
 
         $zip->FileReplace('word/_rels/document.xml.rels', $relations, TBSZIP_STRING); // replace the file by giving the content
@@ -210,19 +209,11 @@ class phpWordRtl
         for ($i = 1; $i <= count($footerXml); $i++)
             $zip->FileReplace("word/footer$i.xml", $footerXml[$i - 1], TBSZIP_STRING); // replace the file by giving the content
 
-        //            echo $xml;
-        //return ;
-
         if (!$phpOutput) {
             $zip->Flush(TBSZIP_FILE, $fileName); // apply modifications as a new local file
         } else {
-            //
-            //                $zip->Flush(TBSZIP_DOWNLOAD, $fileName);
-            //                $zip->Flush(TBSZIP_DOWNLOAD, $fileName, 'application/msword'); // with a specific Content-Type
-            // apply modifications as a downloaded file with your customized HTTP headers
             header("Content-type: application/force-download");
             header("Content-Disposition: attachment; filename=$fileName");
-            //header("Expires: Fri, 01 Jan 2010 05:00:00 GMT");
             $zip->Flush(TBSZIP_DOWNLOAD + TBSZIP_NOHEADER);
         }
 
@@ -245,7 +236,6 @@ class phpWordRtl
 
         $block = substr($xml, $bb, $be - $bb);
 
-        //echo $block;
 
         $xml = $below . $abov;
 
@@ -312,19 +302,7 @@ class phpWordRtl
         return $res;
     }
 
-    // update variable value with image 
-    private function addImageToXml($var, $path, $params)
-    {
-        if (file_exists($path)) {
-
-
-            return array(
-                // 'xml' => $xml,
-                // 'images' => $arrImg
-            );
-        } else
-            return false;
-    }
+    
 
     // add images to relation resource 
     function addImagesToRelationXml($rels, $path, $name, $newId)
@@ -343,6 +321,7 @@ class phpWordRtl
     // add image tags to xml 
     private function addImageTagsToXml($xml, $var, $name, $rId, $params = null)
     {
+
         $id = substr_count($xml, '<wp:docPr') + 1;
 
         $image = '<w:r>
@@ -354,7 +333,7 @@ class phpWordRtl
                         </w:rPr>
                         <w:drawing>
                                 <wp:inline distT="0" distB="0" distL="0" distR="0">
-                                <wp:extent cx="1333500" cy="1191260"/>
+                                <wp:extent cx="' . $params['width'] . '" cy="' . $params['height'] . '"/>
                                 <wp:effectExtent l="0" t="0" r="0" b="0"/>
                                 <wp:docPr id="' . $id . '" name="Picture ' . $id . '" descr="' . $name . '"/>
                                 <wp:cNvGraphicFramePr>
@@ -379,7 +358,7 @@ class phpWordRtl
                                                         <pic:spPr bwMode="auto">
                                                                 <a:xfrm>
                                                                         <a:off x="0" y="0"/>
-                                                                        <a:ext cx="1338159" cy="1195422"/>
+                                                                        <a:ext cx="' . $params['width'] . '" cy="' . $params['height'] . '" />
                                                                 </a:xfrm>
                                                                 <a:prstGeom prst="rect">
                                                                         <a:avLst/>
